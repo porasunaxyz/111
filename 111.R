@@ -1,157 +1,128 @@
+install.packages("Hotelling")
+install.packages("car")
+install.packages("MASS")
+
 library(MASS)
 library(car)
 library(Hotelling)
 
-1. 
+#####Ans to the question no. 1(a)
+
 library(MASS) 
-n <- 2500 
-mu <- c(10.4, 16, 8.5, 7, 9) 
-sigma <- matrix(c(6,4,3,2,1, 4,5,4,3,2, 3,4,7,4,3,2,3,4,9,4,1,2,3,4,4), nrow = 5, byrow = TRUE) 
-set.seed(34) 
-x <- mvrnorm(n, mu, sigma) 
-colnames(x) <- c("X1", "X2", "X3", "X4", "X5") 
-head(x) 
-par(mfrow = c(1, 1)) 
-boxplot(x, main = "Boxplots of Variates", col = "lightblue") 
-par(mfrow = c(1, 5)) 
-for(i in 1:5) { 
-  hist(x[, i], probability = TRUE, main = paste("Histogram of", colnames(x)[i]),  
-       xlab = colnames(x)[i], col = "lightblue") 
-  seq_val <- seq(min(x[, i]), max(x[, i]), length = 100) 
-  lines(seq_val, dnorm(seq_val, mean = mean(x[, i]), sd = sd(x[, i])), col = "red", lwd = 2) 
-} 
-mle_mu=colMeans(x) 
-mle_mu 
-mle_sigma=cov(x) 
-mle_sigma 
-2. 
+ 
+mu = c(11,8,12,19,10) 
+sigma_D = c(6,4,3,2,1,4,5,4,3,2,3,4,7,4,3,2,3,4,9,4,1,2,3,4,4) 
+matrix_A = matrix(sigma_D, nrow = 5, ncol = 5, byrow = TRUE) 
+print(matrix_A) 
+matrix_mu = matrix(mu, nrow = 5, byrow = T) 
+matrix_mu 
+n <- 1000 
+simulated_data <- mvrnorm(n = n, mu = mu, Sigma = matrix_A) 
+df <- as.data.frame(simulated_data) 
+colnames(df) <- c("x1", "x2", "x3", "x4", "x5") 
+head(df) 
+
+#####b
+boxplot(df, main = "Boxplot of Simulated Variates (x1 to x5)", 
+        xlab = "Variates", ylab = "Values", 
+        col = "lightblue", border = "darkblue") 
+
+
+####Ans to the question no. 2(a) 
 library(MASS) 
-mu<-c(5,5) 
-sigma_matrix<-matrix(c(8,-3,-3,5), nrow = 2, byrow = TRUE) 
+
+mu <- c(5,5) 
+sigma_matrix <- matrix(c(8, -3, -3, 5), nrow = 2, byrow = TRUE) 
 set.seed(123) 
-sample_500  <- mvrnorm(500,  mu = mu, Sigma = sigma_matrix)   # Corrected 
+sample_50 <- mvrnorm(500, mu = mu, Sigma = sigma_matrix) 
 sample_1500 <- mvrnorm(1500, mu = mu, Sigma = sigma_matrix) 
 sample_6000 <- mvrnorm(6000, mu = mu, Sigma = sigma_matrix) 
-head(sample_500)   
+head(sample_50) 
 head(sample_1500) 
-head(sample_6000) 
-mu_mle_500  <- colMeans(sample_500) 
+head(sample_6000)
+
+
+####B
+mu_mle_500 <- colMeans(sample_500) 
 mu_mle_1500 <- colMeans(sample_1500) 
 mu_mle_6000 <- colMeans(sample_6000) 
+n1 <- nrow(sample_50) 
+sigma_mle_50 <- ((n1 - 1) / n1) * var(sample_50) 
+n2 <- nrow(sample_1500) 
+sigma_mle_1500 <- ((n2 - 1) / n2) * var(sample_1500) 
+n3 <- nrow(sample_6000) 
+sigma_mle_6000 <- ((n3 - 1) / n3) * var(sample_6000) 
 mu_mle_500 
 mu_mle_1500 
 mu_mle_6000 
-n1 <- nrow(sample_500)      
-sigma_mle_500 <- ((n1-1)/n1)*var(sample_500)    
-n2 <- nrow(sample_1500) 
-sigma_mle_1500 <- ((n2-1)/n2)*var(sample_1500) 
-n3 <- nrow(sample_6000) 
-sigma_mle_6000 <- ((n3-1)/n3)*var(sample_6000) 
 sigma_mle_500 
 sigma_mle_1500 
 sigma_mle_6000 
-samples <- list(sample_500, sample_1500, sample_6000) 
-par(mfrow = c(1,3)) 
-for(i in 1:3){ 
-  d <- mahalanobis(samples[[i]], center = mu, cov = sigma_matrix) 
-  hist(d, probability = TRUE, main = paste("Sample Size =", nrow(samples[[i]])), 
-       col = "lightblue") 
-  curve(dchisq(x, df = 2), add = TRUE,col = "red", lwd = 2) 
-} 
-3. 
-y1 <- c(580,473,664,739,143,127,703,108,185,111,815,770,759,928,849) 
-y2 <- c(516,319,369,193,853,632,551,578,74,544,365,522,205,360,137)   
-y3 <- c(613,514,782,293,927,512,936,856,244,618,500,542,443,402,396) 
-y4 <- c(750,963,107,530,121,8377,118,113,663,816,930,570,789,611,700) 
-y5 <- c(185,183,211,189,216,195,215,223,163,190,208,170,197,156,190) 
-
-y <- data.frame(y1,y2,y3,y4,y5) 
-y 
-
-mu0 <- c(108,500,600,700,180) 
-y.bar<-colMeans(y) 
-S<-var(y) 
-S.inv<-solve(S) 
-
-n<-nrow(y) 
-p<-ncol(y) 
-
-T2<-n*t(y.bar-mu0) %*% S.inv %*% (y.bar-mu0) 
-F.dist<-((n-p)/(p*(n-1)))*T2 
-p.value <- pf(F.dist, p, n-p, lower.tail=FALSE) 
-T2 
-F.dist 
-p.value 
 
 
 
-4(2021): 
-  library(MASS) 
+#####Ans to the question no. 3(a) 
+library(Hotelling)
+
+data_mat <- as.matrix(data.frame(
+  y1 = c(580,473,664,739,143,127,703,108,185,111,815,770,759,928,849),
+  y2 = c(516,319,369,193,853,632,551,578,74,544,365,522,205,360,137),
+  y3 = c(613,514,782,293,927,512,936,856,244,618,500,542,443,402,396),
+  y4 = c(750,963,107,530,121,837,118,113,663,816,930,570,789,611,700),
+  y5 = c(185,183,211,189,216,195,215,223,163,190,208,170,197,156,190)
+))
+
+mu0 <- c(108,500,600,700,180)
+
+alpha <- 0.05
+
+data_centered <- scale(data_mat,
+                       center = mu0,
+                       scale = FALSE)
+
+dummy_zeros <- matrix(0,
+                      nrow = nrow(data_mat),
+                      ncol = ncol(data_mat))
+# Hotelling's T² test
+fit <- hotelling.test(data_centered, dummy_zeros)
+# Results
+print(fit)
+# Decision
+if (fit$pval < alpha) {
+  cat("Conclusion: Reject H0.\n")
+  cat("The sample mean vector is significantly different from mu0.\n")
+} else {
+  cat("Conclusion: Fail to reject H0.\n")
+  cat("There is no significant difference between the sample mean vector and mu0.\n")
+}
+
+####4a
 library(Hotelling) 
+x = list(mean = c(7,10,44),cov = matrix(c(0.46,1.18,4.49,1.18,7.40, -1.35,4.49,-1.35,4.24),nc=3,byrow=TRUE),n=30) 
+y = list(mean = c(5, 4, 2),cov = matrix( c(0.148, -0.679, 0.209, -0.679, 4.100, 2.200,0.209, 2.200, 2.1800), 
+                                         nc = 3,byrow = TRUE),n = 50) 
+fit = hotelling.test(x, y, var.equal = FALSE) 
+fit
 
-n1 <- 30 
-n2 <- 50 
-mu.x <- c(7, 10, 44) 
-mu.y <- c(5,  4,  2) 
-sigma.x <- matrix(c(5,  1.18,  0.49,  
-                    1.18,  7.40, -1.35,  
-                    0.49, -1.35,  4.24), nrow = 3, byrow = TRUE) 
-sigma.y <- matrix(c(3, -0.679, 0.209,  
-                    -0.679,  4.100, 1.200,  
-                    0.209,  1.200, 2.180), nrow = 3, byrow = TRUE) 
 
-set.seed(123) 
-data_x <- mvrnorm(n1, mu.x, sigma.x) 
-data_y <- mvrnorm(n2, mu.y, sigma.y) 
 
-fit <- hotelling.test(data_x, data_y, var.equal = FALSE) 
-fit 
-
-4 (2023): 
-  library(Hotelling) 
-pop1 <- matrix(c(157,222,354,152,231,323,176,197,313,127,226,363,168,247, 
-                 280,134,189,358,132,223,259,105,232,276,109,129,312,140, 
-                 206,276,154,198,343,145,243,282,126,219,346,148,241,317), 
-               ncol=3, byrow=T) 
-pop2 <- matrix(c(91,193,243,78,218,242,76,178,231,67,203,274,54,196,250, 
-                 67,180,258,79,198,287,98,230,165,67,165,151,56,212,157, 
-                 45,184,132,87,191,291,94,121,321,121,231,217), 
-               ncol=3, byrow=T) 
-
-n1 <- nrow(pop1) 
-n2 <- nrow(pop2) 
-n1 
-n2 
-
-mu.x <- colMeans(pop1) 
-mu.y <- colMeans(pop2) 
-mu.x 
-mu.y 
-
-sigma.x <- cov(pop1) 
-sigma.y <- cov(pop2) 
-sigma.x 
-sigma.y 
-
-fit <- hotelling.test(pop1, pop2, var.equal = FALSE) 
-print(fit) 
-
-5. 
+#####Ans to the question no. 5(a)
 library(car) 
+ 
+mu <- c(2, 7)                           
+sigma <- matrix(c(2, 1.5, 1.5, 3), 2, 2)  
+n <- 100                                 
+set.seed(123)  
 library(MASS) 
-
-mu <- c(2, 7) 
-sigma <- matrix(c(2, 1.5, 1.5, 3),nrow = 2) 
-n <- 100 
-set.seed(123) 
 data <- mvrnorm(n, mu, sigma) 
+plot(data, pch=20, col="gray", xlab="X1", ylab="X2", main="95% 
+Confidence Ellipse") 
+dataEllipse(data, levels=0.95, center.pch=19, add=TRUE, 
+            plot.points=FALSE, col="blue") 
+dataEllipse(data, levels=0.90, add=TRUE, plot.points=FALSE, col="red") 
+legend("topleft", legend=c("95% CI", "90% CI"), col=c("blue", "red"), 
+       lty=1) 
 
-plot(data,pch=20,col="brown",main = "Confidence Ellipses",xlab="X1",ylab="X2") 
-
-dataEllipse(data,levels=0.95,center.pch=19,add=TRUE,plot.points=FALSE,col="blue") 
-dataEllipse(data,levels=0.90,add=TRUE,plot.points=FALSE,col="red") 
-
-legend("topleft",legend=c("95% CI","90% CI"),col=c("blue","red"),lty=1,lwd=2) 
 
 
 
